@@ -141,94 +141,94 @@ public final class Main {
   /**
    * Read single switched camera configuration.
    */
-  public static boolean readSwitchedCameraConfig(JsonObject config) {
-    SwitchedCameraConfig cam = new SwitchedCameraConfig();
+  // public static boolean readSwitchedCameraConfig(JsonObject config) {
+  //   SwitchedCameraConfig cam = new SwitchedCameraConfig();
 
-    // name
-    JsonElement nameElement = config.get("name");
-    if (nameElement == null) {
-      parseError("could not read switched camera name");
-      return false;
-    }
-    cam.name = nameElement.getAsString();
+  //   // name
+  //   JsonElement nameElement = config.get("name");
+  //   if (nameElement == null) {
+  //     parseError("could not read switched camera name");
+  //     return false;
+  //   }
+  //   cam.name = nameElement.getAsString();
 
-    // path
-    JsonElement keyElement = config.get("key");
-    if (keyElement == null) {
-      parseError("switched camera '" + cam.name + "': could not read key");
-      return false;
-    }
-    cam.key = keyElement.getAsString();
+  //   // path
+  //   JsonElement keyElement = config.get("key");
+  //   if (keyElement == null) {
+  //     parseError("switched camera '" + cam.name + "': could not read key");
+  //     return false;
+  //   }
+  //   cam.key = keyElement.getAsString();
 
-    switchedCameraConfigs.add(cam);
-    return true;
-  }
+  //   switchedCameraConfigs.add(cam);
+  //   return true;
+  // }
 
-  /**
-   * Read configuration file.
-   */
-  @SuppressWarnings("PMD.CyclomaticComplexity")
-  public static boolean readConfig() {
-    // parse file
-    JsonElement top;
-    try {
-      top = new JsonParser().parse(Files.newBufferedReader(Paths.get(configFile)));
-    } catch (IOException ex) {
-      System.err.println("could not open '" + configFile + "': " + ex);
-      return false;
-    }
+  // /**
+  //  * Read configuration file.
+  //  */
+  // @SuppressWarnings("PMD.CyclomaticComplexity")
+  // public static boolean readConfig() {
+  //   // parse file
+  //   JsonElement top;
+  //   try {
+  //     top = new JsonParser().parse(Files.newBufferedReader(Paths.get(configFile)));
+  //   } catch (IOException ex) {
+  //     System.err.println("could not open '" + configFile + "': " + ex);
+  //     return false;
+  //   }
 
-    // top level must be an object
-    if (!top.isJsonObject()) {
-      parseError("must be JSON object");
-      return false;
-    }
-    JsonObject obj = top.getAsJsonObject();
+  //   // top level must be an object
+  //   if (!top.isJsonObject()) {
+  //     parseError("must be JSON object");
+  //     return false;
+  //   }
+  //   JsonObject obj = top.getAsJsonObject();
 
-    // team number
-    JsonElement teamElement = obj.get("team");
-    if (teamElement == null) {
-      parseError("could not read team number");
-      return false;
-    }
-    team = teamElement.getAsInt();
+  //   // team number
+  //   JsonElement teamElement = obj.get("team");
+  //   if (teamElement == null) {
+  //     parseError("could not read team number");
+  //     return false;
+  //   }
+  //   team = teamElement.getAsInt();
 
-    // ntmode (optional)
-    if (obj.has("ntmode")) {
-      String str = obj.get("ntmode").getAsString();
-      if ("client".equalsIgnoreCase(str)) {
-        server = false;
-      } else if ("server".equalsIgnoreCase(str)) {
-        server = true;
-      } else {
-        parseError("could not understand ntmode value '" + str + "'");
-      }
-    }
+  //   // ntmode (optional)
+  //   if (obj.has("ntmode")) {
+  //     String str = obj.get("ntmode").getAsString();
+  //     if ("client".equalsIgnoreCase(str)) {
+  //       server = false;
+  //     } else if ("server".equalsIgnoreCase(str)) {
+  //       server = true;
+  //     } else {
+  //       parseError("could not understand ntmode value '" + str + "'");
+  //     }
+  //   }
 
-    // cameras
-    JsonElement camerasElement = obj.get("cameras");
-    if (camerasElement == null) {
-      parseError("could not read cameras");
-      return false;
-    }
-    JsonArray cameras = camerasElement.getAsJsonArray();
-    for (JsonElement camera : cameras) {
-      if (!readCameraConfig(camera.getAsJsonObject())) {
-        return false;
-      }
-    }
+  //   // cameras
+  //   JsonElement camerasElement = obj.get("cameras");
+  //   if (camerasElement == null) {
+  //     parseError("could not read cameras");
+  //     return false;
+  //   }
+  //   JsonArray cameras = camerasElement.getAsJsonArray();
+  //   for (JsonElement camera : cameras) {
+  //     if (!readCameraConfig(camera.getAsJsonObject())) {
+  //       return false;
+  //     }
+  //   }
 
-    if (obj.has("switched cameras")) {
-      JsonArray switchedCameras = obj.get("switched cameras").getAsJsonArray();
-      for (JsonElement camera : switchedCameras) {
-        if (!readSwitchedCameraConfig(camera.getAsJsonObject())) {
-          return false;
-        }
-      }
-    }
+  //   if (obj.has("switched cameras")) {
+  //     JsonArray switchedCameras = obj.get("switched cameras").getAsJsonArray();
+  //     for (JsonElement camera : switchedCameras) {
+  //       if (!readSwitchedCameraConfig(camera.getAsJsonObject())) {
+  //         return false;
+  //       }
+  //     }
+  //   }
 
-    return true;
-  }
+  //   return true;
+  // }
 
   /**
    * Start running the camera.
@@ -284,45 +284,45 @@ public final class Main {
   /**
    * Example pipeline.
    */
-  public static class MyPipeline implements VisionPipeline {
-    public int val;
+  // public static class MyPipeline implements VisionPipeline {
+  //   public int val;
 
-    @Override
-    public void process(Mat mat) {
-      val += 1;
-      Imgcodecs.imwrite("/home/pi/photos/original.jpg", mat);
-      Mat grey = new Mat();
-      Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
-      Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
-      Mat edges = new Mat();
-      Imgproc.Canny(grey, edges, 50, 200, 3, false);
-      Imgcodecs.imwrite("/home/pi/photos/edges.jpg", edges);
-      Mat colorEdges = new Mat();
-      Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
-      Mat lines = new Mat(); // will hold the results of the detection
-      Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150); // runs the actual detection
-      // Draw the lines
-      for (int x = 0; x < lines.rows(); x++) {
-          double rho = lines.get(x, 0)[0];
-          double theta = lines.get(x, 0)[1];
-          double a = Math.cos(theta), b = Math.sin(theta);
-          double x0 = a*rho, y0 = b*rho;
-          Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
-          Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
-          Imgproc.line(colorEdges, pt1, pt2, new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
-      }
-      Imgcodecs.imwrite("/home/pi/photos/coloredges.jpg", colorEdges);
+  //   @Override
+  //   public void process(Mat mat) {
+  //     val += 1;
+  //     Imgcodecs.imwrite("/home/pi/photos/original.jpg", mat);
+  //     Mat grey = new Mat();
+  //     Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
+  //     Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
+  //     Mat edges = new Mat();
+  //     Imgproc.Canny(grey, edges, 50, 200, 3, false);
+  //     Imgcodecs.imwrite("/home/pi/photos/edges.jpg", edges);
+  //     Mat colorEdges = new Mat();
+  //     Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
+  //     Mat lines = new Mat(); // will hold the results of the detection
+  //     Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150); // runs the actual detection
+  //     // Draw the lines
+  //     for (int x = 0; x < lines.rows(); x++) {
+  //         double rho = lines.get(x, 0)[0];
+  //         double theta = lines.get(x, 0)[1];
+  //         double a = Math.cos(theta), b = Math.sin(theta);
+  //         double x0 = a*rho, y0 = b*rho;
+  //         Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
+  //         Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
+  //         Imgproc.line(colorEdges, pt1, pt2, new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
+  //     }
+  //     Imgcodecs.imwrite("/home/pi/photos/coloredges.jpg", colorEdges);
 
-      Mat linesP = new Mat(); // will hold the results of the detection
-        Imgproc.HoughLinesP(edges, linesP, 1, Math.PI/180, 50, 50, 10); // runs the actual detection
-        // Draw the lines
-        for (int x = 0; x < linesP.rows(); x++) {
-            double[] l = linesP.get(x, 0);
-            Imgproc.line(colorEdges, new Point(l[0], l[1]), new Point(l[2], l[3]), new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
-        }
-        Imgcodecs.imwrite("/home/pi/photos/coloredgesprobablistic.jpg", colorEdges);
-    }
-  }
+  //     Mat linesP = new Mat(); // will hold the results of the detection
+  //       Imgproc.HoughLinesP(edges, linesP, 1, Math.PI/180, 50, 50, 10); // runs the actual detection
+  //       // Draw the lines
+  //       for (int x = 0; x < linesP.rows(); x++) {
+  //           double[] l = linesP.get(x, 0);
+  //           Imgproc.line(colorEdges, new Point(l[0], l[1]), new Point(l[2], l[3]), new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
+  //       }
+  //       Imgcodecs.imwrite("/home/pi/photos/coloredgesprobablistic.jpg", colorEdges);
+  //   }
+  // }
 
   /**
    * Main.
