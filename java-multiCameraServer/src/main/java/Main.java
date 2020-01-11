@@ -333,7 +333,7 @@ public final class Main {
     }
 
     // read configuration
-    if (!readConfig()) {
+    if (!Init.readConfig()) {
       return;
     }
 
