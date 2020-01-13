@@ -4,12 +4,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.wpi.cscore.MjpegServer;
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoSource;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.vision.VisionThread;
 
 public class Init {
     private static String configFile = "/boot/frc.json";
@@ -21,6 +29,12 @@ public class Init {
         public JsonObject config;
         public JsonElement streamConfig;
     }
+
+    @SuppressWarnings("MemberName")
+        public static class SwitchedCameraConfig {
+        public String name;
+        public String key;
+    };
 
     public static int team;
     public static boolean server;
@@ -55,12 +69,6 @@ public class Init {
         cameraConfigs.add(cam);
         return true;
     }
-
-    @SuppressWarnings("MemberName")
-    public static class SwitchedCameraConfig {
-        public String name;
-        public String key;
-    };
 
     public static void parseError(String str) {
         System.err.println("config error in '" + configFile + "': " + str);
@@ -153,4 +161,86 @@ public class Init {
 
         return true;
     }
+
+    public static VideoSource startCamera(CameraConfig config) {
+        System.out.println("Starting camera '" + config.name + "' on " + config.path);
+        CameraServer inst = CameraServer.getInstance();
+        UsbCamera camera = new UsbCamera(config.name, config.path);
+        MjpegServer server = inst.startAutomaticCapture(camera);
+    
+        Gson gson = new GsonBuilder().create();
+    
+        camera.setConfigJson(gson.toJson(config.config));
+        camera.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen);
+    
+        if (config.streamConfig != null) {
+          server.setConfigJson(gson.toJson(config.streamConfig));
+        }
+    
+        return camera;
+      }
+    
+      /**
+       * Start running the switched camera.
+       */
+      public static MjpegServer startSwitchedCamera(SwitchedCameraConfig config) {
+        System.out.println("Starting switched camera '" + config.name + "' on " + config.key);
+        MjpegServer server = CameraServer.getInstance().addSwitchedCamera(config.name);
+    
+        NetworkTableInstance.getDefault()
+            .getEntry(config.key)
+            .addListener(event -> {
+                  if (event.value.isDouble()) {
+                    int i = (int) event.value.getDouble();
+                    if (i >= 0 && i < cameras.size()) {
+                      server.setSource(cameras.get(i));
+                    }
+                  } else if (event.value.isString()) {
+                    String str = event.value.getString();
+                    for (int i = 0; i < cameraConfigs.size(); i++) {
+                      if (str.equals(cameraConfigs.get(i).name)) {
+                        server.setSource(cameras.get(i));
+                        break;
+                      }
+                    }
+                  }
+                },
+                EntryListenerFlags.kImmediate | EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+    
+        return server;
+      }
+
+      public void init(String... args) {
+        if (args.length > 0) {
+            configFile = args[0];
+          }
+      
+          // read configuration
+          if (!Init.readConfig()) {
+            return;
+          }
+        // start cameras
+        for (CameraConfig config : cameraConfigs) {
+            cameras.add(startCamera(config));
+        }
+  
+        // start switched cameras
+        for (SwitchedCameraConfig config : switchedCameraConfigs) {
+            startSwitchedCamera(config);
+        }
+  
+        // start image processing on camera 0 if present
+        if (cameras.size() >= 1) {
+            VisionThread visionThread = new VisionThread(cameras.get(0), new MyPipeline(), pipeline -> {
+            // do something with pipeline results
+        });
+        /* something like this for GRIP:
+        VisionThread visionThread = new VisionThread(cameras.get(0),
+                new GripPipeline(), pipeline -> {
+          ...
+        });
+         */
+            visionThread.start();
+        }
+      }
 }

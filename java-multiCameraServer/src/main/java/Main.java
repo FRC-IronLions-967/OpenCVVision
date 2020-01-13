@@ -141,94 +141,94 @@ public final class Main {
   /**
    * Read single switched camera configuration.
    */
-  // public static boolean readSwitchedCameraConfig(JsonObject config) {
-  //   SwitchedCameraConfig cam = new SwitchedCameraConfig();
+  public static boolean readSwitchedCameraConfig(JsonObject config) {
+    SwitchedCameraConfig cam = new SwitchedCameraConfig();
 
-  //   // name
-  //   JsonElement nameElement = config.get("name");
-  //   if (nameElement == null) {
-  //     parseError("could not read switched camera name");
-  //     return false;
-  //   }
-  //   cam.name = nameElement.getAsString();
+    // name
+    JsonElement nameElement = config.get("name");
+    if (nameElement == null) {
+      parseError("could not read switched camera name");
+      return false;
+    }
+    cam.name = nameElement.getAsString();
 
-  //   // path
-  //   JsonElement keyElement = config.get("key");
-  //   if (keyElement == null) {
-  //     parseError("switched camera '" + cam.name + "': could not read key");
-  //     return false;
-  //   }
-  //   cam.key = keyElement.getAsString();
+    // path
+    JsonElement keyElement = config.get("key");
+    if (keyElement == null) {
+      parseError("switched camera '" + cam.name + "': could not read key");
+      return false;
+    }
+    cam.key = keyElement.getAsString();
 
-  //   switchedCameraConfigs.add(cam);
-  //   return true;
-  // }
+    switchedCameraConfigs.add(cam);
+    return true;
+  }
 
   // /**
   //  * Read configuration file.
   //  */
-  // @SuppressWarnings("PMD.CyclomaticComplexity")
-  // public static boolean readConfig() {
-  //   // parse file
-  //   JsonElement top;
-  //   try {
-  //     top = new JsonParser().parse(Files.newBufferedReader(Paths.get(configFile)));
-  //   } catch (IOException ex) {
-  //     System.err.println("could not open '" + configFile + "': " + ex);
-  //     return false;
-  //   }
+  @SuppressWarnings("PMD.CyclomaticComplexity")
+  public static boolean readConfig() {
+    // parse file
+    JsonElement top;
+    try {
+      top = new JsonParser().parse(Files.newBufferedReader(Paths.get(configFile)));
+    } catch (IOException ex) {
+      System.err.println("could not open '" + configFile + "': " + ex);
+      return false;
+    }
 
-  //   // top level must be an object
-  //   if (!top.isJsonObject()) {
-  //     parseError("must be JSON object");
-  //     return false;
-  //   }
-  //   JsonObject obj = top.getAsJsonObject();
+    // top level must be an object
+    if (!top.isJsonObject()) {
+      parseError("must be JSON object");
+      return false;
+    }
+    JsonObject obj = top.getAsJsonObject();
 
-  //   // team number
-  //   JsonElement teamElement = obj.get("team");
-  //   if (teamElement == null) {
-  //     parseError("could not read team number");
-  //     return false;
-  //   }
-  //   team = teamElement.getAsInt();
+    // team number
+    JsonElement teamElement = obj.get("team");
+    if (teamElement == null) {
+      parseError("could not read team number");
+      return false;
+    }
+    team = teamElement.getAsInt();
 
-  //   // ntmode (optional)
-  //   if (obj.has("ntmode")) {
-  //     String str = obj.get("ntmode").getAsString();
-  //     if ("client".equalsIgnoreCase(str)) {
-  //       server = false;
-  //     } else if ("server".equalsIgnoreCase(str)) {
-  //       server = true;
-  //     } else {
-  //       parseError("could not understand ntmode value '" + str + "'");
-  //     }
-  //   }
+    // ntmode (optional)
+    if (obj.has("ntmode")) {
+      String str = obj.get("ntmode").getAsString();
+      if ("client".equalsIgnoreCase(str)) {
+        server = false;
+      } else if ("server".equalsIgnoreCase(str)) {
+        server = true;
+      } else {
+        parseError("could not understand ntmode value '" + str + "'");
+      }
+    }
 
-  //   // cameras
-  //   JsonElement camerasElement = obj.get("cameras");
-  //   if (camerasElement == null) {
-  //     parseError("could not read cameras");
-  //     return false;
-  //   }
-  //   JsonArray cameras = camerasElement.getAsJsonArray();
-  //   for (JsonElement camera : cameras) {
-  //     if (!readCameraConfig(camera.getAsJsonObject())) {
-  //       return false;
-  //     }
-  //   }
+    // cameras
+    JsonElement camerasElement = obj.get("cameras");
+    if (camerasElement == null) {
+      parseError("could not read cameras");
+      return false;
+    }
+    JsonArray cameras = camerasElement.getAsJsonArray();
+    for (JsonElement camera : cameras) {
+      if (!readCameraConfig(camera.getAsJsonObject())) {
+        return false;
+      }
+    }
 
-  //   if (obj.has("switched cameras")) {
-  //     JsonArray switchedCameras = obj.get("switched cameras").getAsJsonArray();
-  //     for (JsonElement camera : switchedCameras) {
-  //       if (!readSwitchedCameraConfig(camera.getAsJsonObject())) {
-  //         return false;
-  //       }
-  //     }
-  //   }
+    if (obj.has("switched cameras")) {
+      JsonArray switchedCameras = obj.get("switched cameras").getAsJsonArray();
+      for (JsonElement camera : switchedCameras) {
+        if (!readSwitchedCameraConfig(camera.getAsJsonObject())) {
+          return false;
+        }
+      }
+    }
 
-  //   return true;
-  // }
+    return true;
+  }
 
   /**
    * Start running the camera.
