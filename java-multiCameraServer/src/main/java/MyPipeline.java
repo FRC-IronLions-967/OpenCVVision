@@ -13,14 +13,30 @@ public class MyPipeline implements VisionPipeline {
     @Override
     public void process(Mat mat) {
         val += 1;
-        Imgcodecs.imwrite("/home/pi/photos/original.jpg", mat);
         Mat grey = new Mat();
         Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.blur(grey, grey, new Size(3, 3), new Point(-1, -1));
-        Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
-        Mat edges = new Mat();
-        Imgproc.Canny(grey, edges, 50, 200, 3, false);
-        Imgcodecs.imwrite("/home/pi/photos/edges.jpg", edges);
+        Mat bin = new Mat();
+        Imgproc.threshold(grey, bin, 200, 255, 3);
+        Imgcodecs.imwrite("/home/pi/photos/bin.jpg", bin);
+        // Mat edges = new Mat();
+        // Imgproc.Canny(bin, edges, 50, 200, 3, false);
+        // Mat lines = new Mat();
+        // Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150);
+        // for(int i = 0; i < lines.rows(); i++) {
+        //     System.out.println("Rho: " + lines.get(i, 0)[0]);
+        //     System.out.println("Theta: " + lines.get(i, 0)[1]);
+        // }
+    }
+  }
+
+//   Imgcodecs.imwrite("/home/pi/photos/original.jpg", mat);
+//         Mat grey = new Mat();
+//         Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
+//         Imgproc.blur(grey, grey, new Size(3, 3), new Point(-1, -1));
+//         Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
+//         Mat edges = new Mat();
+//         Imgproc.Canny(grey, edges, 50, 200, 3, false);
+//         Imgcodecs.imwrite("/home/pi/photos/edges.jpg", edges);
         // Mat colorEdges = new Mat();
         // Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
         // Mat lines = new Mat(); // will hold the results of the detection
@@ -50,17 +66,15 @@ public class MyPipeline implements VisionPipeline {
         // }
         // Imgcodecs.imwrite("/home/pi/photos/coloredgesprobablistic.jpg", colorEdges);
 
-        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        Mat drawnContours = Mat.zeros(edges.size(), CvType.CV_8UC3);
-        Rect[] boundRect = new Rect[contours.size()];
-        for (int i = 0; i < contours.size(); i++) {
-            Scalar color = new Scalar(0, 0, 255);
-            Imgproc.drawContours(drawnContours, contours, i, color, 2, Core.LINE_8, hierarchy, 0, new Point());
-            Imgproc.rectangle(drawnContours, boundRect[i].tl(), boundRect[i].br(), color, 2);
-        }
+        // List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        // Mat hierarchy = new Mat();
+        // Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        // Mat drawnContours = Mat.zeros(edges.size(), CvType.CV_8UC3);
+        // Rect[] boundRect = new Rect[contours.size()];
+        // for (int i = 0; i < contours.size(); i++) {
+        //     Scalar color = new Scalar(0, 0, 255);
+        //     Imgproc.drawContours(drawnContours, contours, i, color, 2, Core.LINE_8, hierarchy, 0, new Point());
+        //     Imgproc.rectangle(drawnContours, boundRect[i].tl(), boundRect[i].br(), color, 2);
+        // }
 
-        Imgcodecs.imwrite("/home/pi/photos/contours.jpg", drawnContours);
-    }
-  }
+        // Imgcodecs.imwrite("/home/pi/photos/contours.jpg", drawnContours);
