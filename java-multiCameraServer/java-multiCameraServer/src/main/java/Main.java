@@ -279,17 +279,17 @@ public final class Main {
     return server;
   }
 
-  // /**
-  //  * Example pipeline.
-  //  */
-  // public static class MyPipeline implements VisionPipeline {
-  //   public int val;
+  /**
+   * Example pipeline.
+   */
+  public static class MyPipeline implements VisionPipeline {
+    public int val;
 
-  //   @Override
-  //   public void process(Mat mat) {
-  //     val += 1;
-  //   }
-  // }
+    @Override
+    public void process(Mat mat) {
+      val += 1;
+    }
+  }
 
   /**
    * Main.

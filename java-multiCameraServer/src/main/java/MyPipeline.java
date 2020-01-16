@@ -1,8 +1,5 @@
 import edu.wpi.first.vision.VisionPipeline;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opencv.core.*;
 import org.opencv.imgproc.*;
 import org.opencv.imgcodecs.*;
@@ -15,17 +12,18 @@ public class MyPipeline implements VisionPipeline {
         val += 1;
         Mat grey = new Mat();
         Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
+        Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
         Mat bin = new Mat();
         Imgproc.threshold(grey, bin, 200, 255, 3);
         Imgcodecs.imwrite("/home/pi/photos/bin.jpg", bin);
-        // Mat edges = new Mat();
-        // Imgproc.Canny(bin, edges, 50, 200, 3, false);
-        // Mat lines = new Mat();
-        // Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150);
-        // for(int i = 0; i < lines.rows(); i++) {
-        //     System.out.println("Rho: " + lines.get(i, 0)[0]);
-        //     System.out.println("Theta: " + lines.get(i, 0)[1]);
-        // }
+        Mat edges = new Mat();
+        Imgproc.Canny(bin, edges, 50, 200, 3, false);
+        Mat lines = new Mat();
+        Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150);
+        for(int i = 0; i < lines.rows(); i++) {
+            System.out.println("Rho: " + lines.get(i, 0)[0]);
+            System.out.println("Theta: " + lines.get(i, 0)[1]);
+        }
     }
   }
 
