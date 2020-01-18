@@ -20,19 +20,19 @@ public class MyPipeline implements VisionPipeline {
         Imgproc.Canny(bin, edges, 50, 200, 3, false);
         Mat lines = new Mat();
         Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150);
-        Mat colorEdges = new Mat();
-        Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
-        // Draw the lines
-        for (int x = 0; x < lines.rows(); x++) {
-            double rho = lines.get(x, 0)[0];
-            double theta = lines.get(x, 0)[1];
-            double a = Math.cos(theta), b = Math.sin(theta);
-            double x0 = a*rho, y0 = b*rho;
-            Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
-            Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
-            Imgproc.line(colorEdges, pt1, pt2, new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
-        }
-        Imgcodecs.imwrite("/home/pi/photos/coloredges.jpg", colorEdges);
+        // Mat colorEdges = new Mat();
+        // Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
+        // // Draw the lines
+        // for (int x = 0; x < lines.rows(); x++) {
+        //     double rho = lines.get(x, 0)[0];
+        //     double theta = lines.get(x, 0)[1];
+        //     double a = Math.cos(theta), b = Math.sin(theta);
+        //     double x0 = a*rho, y0 = b*rho;
+        //     Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
+        //     Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
+        //     Imgproc.line(colorEdges, pt1, pt2, new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
+        // }
+        // Imgcodecs.imwrite("/home/pi/photos/coloredges.jpg", colorEdges);
     }
   }
 
