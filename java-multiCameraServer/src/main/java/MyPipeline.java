@@ -1,5 +1,7 @@
 import edu.wpi.first.vision.VisionPipeline;
 
+import java.util.*;
+
 import org.opencv.core.*;
 import org.opencv.imgproc.*;
 import org.opencv.imgcodecs.*;
@@ -18,15 +20,30 @@ public class MyPipeline implements VisionPipeline {
         Imgcodecs.imwrite("/home/pi/photos/bin.jpg", bin);
         Mat edges = new Mat();
         Imgproc.Canny(bin, edges, 50, 200, 3, false);
-        Mat lines = new Mat();
-        Imgproc.HoughLinesP(edges, lines, 1, Math.PI/180, 150);
-        Point vertices[] = new Point[lines.rows()];
-        for(int i = 0; i < lines.rows(); i++) {
-            double rho = lines.get(i, 0)[0];
-            double theta = lines.get(i, 0)[1];
-            vertices[i] = new Point(Math.round(rho * Math.cos(theta)), Math.round(rho * Math.sin(theta)));
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        MatOfPoint2f[] contoursPoly  = new MatOfPoint2f[contours.size()];
+        Rect bounds[] = new Rect[contours.size()];
+        for(int i = 0; i < contours.size(); i++) {
+          contoursPoly[i] = new MatOfPoint2f();
+          Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
+          bounds[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
         }
-        // Mat colorEdges = new Mat();
+        if(bounds.length > 0) {
+          double a = bounds[0].area();
+          //TODO find the distance as a function of area
+        }
+        // Mat lines = new Mat();
+        // Imgproc.HoughLinesP(edges, lines, 1, Math.PI/180, 150);
+        // Point vertices[] = new Point[lines.rows()];
+        // for(int i = 0; i < lines.rows(); i++) {
+        //     double rho = lines.get(i, 0)[0];
+        //     double theta = lines.get(i, 0)[1];
+        //     vertices[i] = new Point(Math.round(rho * Math.cos(theta)), Math.round(rho * Math.sin(theta)));
+        // }
+        // // Mat colorEdges = new Mat();
         // Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
         // // Draw the lines
         // for (int x = 0; x < lines.rows(); x++) {
