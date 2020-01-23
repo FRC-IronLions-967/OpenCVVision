@@ -19,7 +19,13 @@ public class MyPipeline implements VisionPipeline {
         Mat edges = new Mat();
         Imgproc.Canny(bin, edges, 50, 200, 3, false);
         Mat lines = new Mat();
-        Imgproc.HoughLines(edges, lines, 1, Math.PI/180, 150);
+        Imgproc.HoughLinesP(edges, lines, 1, Math.PI/180, 150);
+        Point vertices[] = new Point[lines.rows()];
+        for(int i = 0; i < lines.rows(); i++) {
+            double rho = lines.get(i, 0)[0];
+            double theta = lines.get(i, 0)[1];
+            vertices[i] = new Point(Math.round(rho * Math.cos(theta)), Math.round(rho * Math.sin(theta)));
+        }
         // Mat colorEdges = new Mat();
         // Imgproc.cvtColor(edges, colorEdges, Imgproc.COLOR_GRAY2BGR);
         // // Draw the lines
