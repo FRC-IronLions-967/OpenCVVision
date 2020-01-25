@@ -23,7 +23,7 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.EntryListenerFlags;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.*;
 // import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.first.vision.VisionThread;
 
@@ -94,6 +94,9 @@ public final class Main {
   public static List<CameraConfig> cameraConfigs = new ArrayList<>();
   public static List<SwitchedCameraConfig> switchedCameraConfigs = new ArrayList<>();
   public static List<VideoSource> cameras = new ArrayList<>();
+
+  public static NetworkTableInstance inst;
+  public static NetworkTable visionTable;
 
   private Main() {
   }
@@ -305,14 +308,14 @@ public final class Main {
     }
 
     // start NetworkTables
-    NetworkTableInstance ntinst = NetworkTableInstance.getDefault();
-    if (server) {
-      System.out.println("Setting up NetworkTables server");
-      ntinst.startServer();
-    } else {
-      System.out.println("Setting up NetworkTables client for team " + team);
-      ntinst.startClientTeam(team);
-    }
+    // NetworkTableInstance ntinst = NetworkTableInstance.getDefault();
+    // if (server) {
+    //   System.out.println("Setting up NetworkTables server");
+    //   ntinst.startServer();
+    // } else {
+    //   System.out.println("Setting up NetworkTables client for team " + team);
+    //   ntinst.startClientTeam(team);
+    // }
 
     // start cameras
     for (CameraConfig config : cameraConfigs) {
@@ -323,6 +326,10 @@ public final class Main {
     for (SwitchedCameraConfig config : switchedCameraConfigs) {
       startSwitchedCamera(config);
     }
+
+    inst = NetworkTableInstance.getDefault();
+    inst.startClientTeam(team);
+    visionTable = inst.getTable("vision");
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
