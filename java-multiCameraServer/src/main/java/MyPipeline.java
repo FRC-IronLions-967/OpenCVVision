@@ -5,20 +5,21 @@ import java.util.*;
 
 import org.opencv.core.*;
 import org.opencv.imgproc.*;
-import org.opencv.imgcodecs.*;
 
 public class MyPipeline implements VisionPipeline {
-  public int val;
+  public static int val;
+  public static Mat drawing;
 
   @Override
   public void process(Mat mat) {
     val += 1;
     Mat grey = new Mat();
     Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
-    Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
+    // Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
+    Imgproc.blur(grey, grey, new Size(3, 3));
     Mat bin = new Mat();
     Imgproc.threshold(grey, bin, 150, 255, 0);
-    Imgcodecs.imwrite("/home/pi/photos/bin.jpg", bin);
+    // Imgcodecs.imwrite("/home/pi/photos/bin.jpg", bin);
     Mat edges = new Mat();
     Imgproc.Canny(bin, edges, 50, 200, 3, false);
     List<MatOfPoint> contours = new ArrayList<>();
@@ -35,7 +36,7 @@ public class MyPipeline implements VisionPipeline {
     }
 
     //initialize matrix and list for holding the contours and shapes
-    Mat drawing = Mat.zeros(edges.size(), CvType.CV_8UC3);
+    drawing = Mat.zeros(edges.size(), CvType.CV_8UC3);
     List<MatOfPoint> contoursPolyList = new ArrayList<>(contoursPoly.length);
     
     //add all of the bounding rectangles to a list
@@ -49,7 +50,7 @@ public class MyPipeline implements VisionPipeline {
       // Imgproc.rectangle(drawing, bounds[i].tl(), bounds[i].br(), new Scalar(255, 0, 0), 2);
     }
 
-    Imgcodecs.imwrite("/home/pi/photos/drawing.jpg", drawing);
+    // Imgcodecs.imwrite("/home/pi/photos/drawing.jpg", drawing);
 
     //find the index of the largest rect by area
     if(bounds.length > 0) {

@@ -18,8 +18,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.EntryListenerFlags;
@@ -344,15 +346,22 @@ public final class Main {
       });
        */
       visionThread.start();
-    }
-
-    // loop forever
-    for (;;) {
+      
+      CvSource imageSource = new CvSource("CV Image Source", VideoMode.PixelFormat.kMJPEG, 640, 480, 30);
+      MjpegServer cvStream = new MjpegServer("CV Image Stream", 1186);
+      cvStream.setSource(imageSource);
+      
       try {
         Thread.sleep(10000);
-      } catch (InterruptedException ex) {
-        return;
+        System.out.println((double) MyPipeline.val / 10);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
+
+      // loop forever
+    for (;;) {
+      imageSource.putFrame(MyPipeline.drawing);
+    }
     }
   }
 }
