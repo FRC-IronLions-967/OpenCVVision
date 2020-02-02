@@ -46,7 +46,7 @@ public class MyPipeline implements VisionPipeline {
 
     //draw the bounding rectangles and the contours - unused, currently draws the largest later on in the code
     for (int i = 0; i < contours.size(); i++) {
-      Imgproc.drawContours(drawing, contoursPolyList, i, new Scalar(255, 0, 0));
+      Imgproc.drawContours(drawing, contoursPolyList, i, new Scalar(0, 255, 0));
       // Imgproc.rectangle(drawing, bounds[i].tl(), bounds[i].br(), new Scalar(255, 0, 0), 2);
     }
 
@@ -59,11 +59,11 @@ public class MyPipeline implements VisionPipeline {
         maxIndex = bounds[i].area() > bounds[maxIndex].area() ? i : maxIndex;
       }
       Imgproc.rectangle(drawing, bounds[maxIndex].tl(), bounds[maxIndex].br(), new Scalar(255, 0, 0), 2);
-      double area = bounds[maxIndex].area();
-      double width = bounds[maxIndex].area();
-      NetworkTableEntry areaEntry = Main.visionTable.getEntry("area");
+      double height = bounds[maxIndex].height;
+      double width = bounds[maxIndex].width;
+      NetworkTableEntry areaEntry = Main.visionTable.getEntry("height");
       NetworkTableEntry widthEntry = Main.visionTable.getEntry("width");
-      areaEntry.setDouble(area);
+      areaEntry.setDouble(height);
       widthEntry.setDouble(width);
     }
     // Mat lines = new Mat();
