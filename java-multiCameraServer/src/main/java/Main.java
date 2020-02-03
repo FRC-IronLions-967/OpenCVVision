@@ -359,9 +359,15 @@ public final class Main {
       }
 
       // loop forever
-    for (;;) {
-      imageSource.putFrame(MyPipeline.drawing);
-    }
+      long oldTime = System.currentTimeMillis();
+      for (;;) {
+        if(System.currentTimeMillis() - oldTime >= 1000) {
+          System.out.println(MyPipeline.val);
+          oldTime = System.currentTimeMillis();
+          MyPipeline.val = 0;
+        }
+        imageSource.putFrame(MyPipeline.drawing);
+      }
     }
   }
 }

@@ -8,23 +8,26 @@ import org.opencv.imgproc.*;
 
 public class MyPipeline implements VisionPipeline {
   public static int val;
+  // public static Mat hierarchy;
   public static Mat drawing;
 
   @Override
   public void process(Mat mat) {
+    // hierarchy = new Mat();
+    // drawing = new Mat();
     val += 1;
-    Mat grey = new Mat();
-    Imgproc.cvtColor(mat, grey, Imgproc.COLOR_RGB2GRAY);
+    // Mat grey = new Mat();
+    Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2GRAY);
     // Imgcodecs.imwrite("/home/pi/photos/grey.jpg", grey);
-    Imgproc.blur(grey, grey, new Size(3, 3));
-    Mat bin = new Mat();
-    Imgproc.threshold(grey, bin, 150, 255, 0);
+    Imgproc.blur(mat, mat, new Size(3, 3));
+    // Mat bin = new Mat();
+    Imgproc.threshold(mat, mat, 150, 255, 0);
     // Imgcodecs.imwrite("/home/pi/photos/bin.jpg", bin);
-    Mat edges = new Mat();
-    Imgproc.Canny(bin, edges, 50, 200, 3, false);
+    // Mat edges = new Mat();
+    Imgproc.Canny(mat, mat, 50, 200, 3, false);
     List<MatOfPoint> contours = new ArrayList<>();
     Mat hierarchy = new Mat();
-    Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+    Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
 
     //calculate the bounding rectangles
     MatOfPoint2f[] contoursPoly = new MatOfPoint2f[contours.size()];
@@ -36,7 +39,7 @@ public class MyPipeline implements VisionPipeline {
     }
 
     //initialize matrix and list for holding the contours and shapes
-    drawing = Mat.zeros(edges.size(), CvType.CV_8UC3);
+    drawing = Mat.zeros(mat.size(), CvType.CV_8UC3);
     List<MatOfPoint> contoursPolyList = new ArrayList<>(contoursPoly.length);
     
     //add all of the bounding rectangles to a list
