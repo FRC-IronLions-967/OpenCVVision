@@ -5,6 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
+#include <iostream>
 #include <cstdio>
 #include <string>
 #include <thread>
@@ -80,6 +81,7 @@ unsigned int team;
 bool server = false;
 
 Mat drawing;
+int val;
 
 struct CameraConfig {
   std::string name;
@@ -290,7 +292,7 @@ class MyPipeline: public frc::VisionPipeline {
 
 public:
 
-int val = 0;
+// static int val;
 double height = 0.0;
 double width = 0.0;
 // static Mat drawing;
@@ -322,7 +324,7 @@ void Process(Mat& mat) {
     drawing = Mat::zeros(mat.size(), CV_8UC3);
 
     for(int i = 0; i < contours.size(); i++) {
-        drawContours(drawing, contours, i, Scalar(0, 0, 255), 2, 8, hierarchy, 0, Point());
+        drawContours(drawing, contours, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point());
     }
 
     if(boundRects.size() > 0) {
@@ -330,7 +332,7 @@ void Process(Mat& mat) {
         for(int i = 0; i < boundRects.size(); i++) {
             maxIndex = (boundRects[i].area() > boundRects[maxIndex].area()) ? i : maxIndex;
         }
-        rectangle(drawing, boundRects[maxIndex].tl(), boundRects[maxIndex].br(), Scalar(255, 0, 0));
+        rectangle(drawing, boundRects[maxIndex].tl(), boundRects[maxIndex].br(), Scalar(0, 0, 255));
         height = boundRects[maxIndex].height;
         width = boundRects[maxIndex].width;
     }
@@ -383,6 +385,10 @@ int main(int argc, char* argv[]) {
 
   }
 
+  int start_val = val;
+  std::this_thread::sleep_for(std::chrono::seconds(60));
+  double fps = ((double)val - (double)start_val)/60.0;
+  std::cout << fps << endl;
   // loop forever
   for (;;) {
     std::this_thread::sleep_for(std::chrono::seconds(10));
