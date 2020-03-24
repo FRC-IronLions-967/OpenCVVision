@@ -20,6 +20,11 @@
 
 #include "cameraserver/CameraServer.h"
 
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/opencv.hpp>
+
 /*
    JSON format:
    {
@@ -65,10 +70,16 @@
 
 static const char* configFile = "/boot/frc.json";
 
+using namespace std;
+using namespace cv;
+using namespace cs;
+
 namespace {
 
 unsigned int team;
 bool server = false;
+
+Mat drawing;
 
 struct CameraConfig {
   std::string name;
@@ -81,6 +92,8 @@ struct SwitchedCameraConfig {
   std::string name;
   std::string key;
 };
+
+}
 
 std::vector<CameraConfig> cameraConfigs;
 std::vector<SwitchedCameraConfig> switchedCameraConfigs;
@@ -263,15 +276,66 @@ cs::MjpegServer StartSwitchedCamera(const SwitchedCameraConfig& config) {
 }
 
 // example pipeline
-class MyPipeline : public frc::VisionPipeline {
- public:
-  int val = 0;
+// class MyPipeline : public frc::VisionPipeline {
+//  public:
+//   int val = 0;
 
-  void Process(cv::Mat& mat) override {
-    ++val;
-  }
+//   void Process(cv::Mat& mat) override {
+//     ++val;
+//   }
+// };
+// }  // namespace
+
+class MyPipeline: public frc::VisionPipeline {
+
+public:
+
+int val = 0;
+double height = 0.0;
+double width = 0.0;
+// static Mat drawing;
+
+void Process(Mat& mat) {
+    val++;
+    
+    cvtColor(mat, mat, COLOR_RGB2GRAY);
+
+    blur(mat, mat, Size(3, 3));
+
+    threshold(mat, mat, 150, 255, 0);
+
+    Canny(mat, mat, 50, 200, 3, false);
+
+    vector<vector<Point>> contours;
+    vector<Vec4i> hierarchy;
+
+    findContours(mat, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+
+    vector<vector<Point>> contours_poly(contours.size());
+    vector<Rect> boundRects(contours.size());
+
+    for(int i = 0; i < contours.size(); i++) {
+        approxPolyDP(contours[i], contours_poly[i], 3, true);
+        boundRects[i] = boundingRect(contours_poly[i]);
+    }
+
+    drawing = Mat::zeros(mat.size(), CV_8UC3);
+
+    for(int i = 0; i < contours.size(); i++) {
+        drawContours(drawing, contours, i, Scalar(0, 0, 255), 2, 8, hierarchy, 0, Point());
+    }
+
+    if(boundRects.size() > 0) {
+        int maxIndex = 0;
+        for(int i = 0; i < boundRects.size(); i++) {
+            maxIndex = (boundRects[i].area() > boundRects[maxIndex].area()) ? i : maxIndex;
+        }
+        rectangle(drawing, boundRects[maxIndex].tl(), boundRects[maxIndex].br(), Scalar(255, 0, 0));
+        height = boundRects[maxIndex].height;
+        width = boundRects[maxIndex].width;
+    }
+}
 };
-}  // namespace
 
 int main(int argc, char* argv[]) {
   if (argc >= 2) configFile = argv[1];
@@ -296,12 +360,17 @@ int main(int argc, char* argv[]) {
   // start switched cameras
   for (const auto& config : switchedCameraConfigs) StartSwitchedCamera(config);
 
+  CvSource imageSource("CV Image Source", VideoMode::kMJPEG, 640, 480, 30);
+  MjpegServer cvStream("CV Image Stream", 1186);
+  cvStream.SetSource(imageSource);
+
   // start image processing on camera 0 if present
   if (cameras.size() >= 1) {
     std::thread([&] {
       frc::VisionRunner<MyPipeline> runner(cameras[0], new MyPipeline(),
                                            [&](MyPipeline &pipeline) {
         // do something with pipeline results
+        imageSource.PutFrame(drawing);
       });
       /* something like this for GRIP:
       frc::VisionRunner<MyPipeline> runner(cameras[0], new grip::GripPipeline(),
@@ -311,8 +380,12 @@ int main(int argc, char* argv[]) {
        */
       runner.RunForever();
     }).detach();
+
   }
 
   // loop forever
-  for (;;) std::this_thread::sleep_for(std::chrono::seconds(10));
+  for (;;) {
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+    // imageSource.PutFrame(drawing);
+  }
 }
