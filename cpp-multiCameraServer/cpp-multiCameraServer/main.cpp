@@ -26,6 +26,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 
+
 /*
    JSON format:
    {
@@ -81,6 +82,8 @@ unsigned int team;
 bool server = false;
 
 Mat drawing;
+double height = 0.0;
+double width = 0.0;
 int val;
 
 struct CameraConfig {
@@ -293,8 +296,6 @@ class MyPipeline: public frc::VisionPipeline {
 public:
 
 // static int val;
-double height = 0.0;
-double width = 0.0;
 // static Mat drawing;
 
 void Process(Mat& mat) {
@@ -366,32 +367,39 @@ int main(int argc, char* argv[]) {
   MjpegServer cvStream("CV Image Stream", 1186);
   cvStream.SetSource(imageSource);
 
+  auto table = ntinst.GetTable("vision");
+  nt::NetworkTableEntry nt_height = ntinst.GetEntry("height");
+  nt::NetworkTableEntry nt_width = ntinst.GetEntry("width");
+
   // start image processing on camera 0 if present
   if (cameras.size() >= 1) {
-    std::thread([&] {
-      frc::VisionRunner<MyPipeline> runner(cameras[0], new MyPipeline(),
-                                           [&](MyPipeline &pipeline) {
-        // do something with pipeline results
-        imageSource.PutFrame(drawing);
-      });
-      /* something like this for GRIP:
-      frc::VisionRunner<MyPipeline> runner(cameras[0], new grip::GripPipeline(),
-                                           [&](grip::GripPipeline& pipeline) {
-        ...
-      });
-       */
-      runner.RunForever();
-    }).detach();
+    for(;;) {
+      //std::thread([&] {
 
+        frc::VisionRunner<MyPipeline> runner(cameras[0], new MyPipeline(),
+                                             [&](MyPipeline &pipeline) {
+          // do something with pipeline results
+          nt_height.SetDouble(height);
+          nt_width.SetDouble(width);
+          imageSource.PutFrame(drawing);
+        });
+        /* something like this for GRIP:
+        frc::VisionRunner<MyPipeline> runner(cameras[0], new grip::GripPipeline(),
+                                             [&](grip::GripPipeline& pipeline) {
+          ...
+        });
+         */
+        runner.RunOnce();
+      //}).detach();
+    }
   }
 
-  int start_val = val;
-  std::this_thread::sleep_for(std::chrono::seconds(60));
-  double fps = ((double)val - (double)start_val)/60.0;
-  std::cout << fps << endl;
-  // loop forever
-  for (;;) {
-    std::this_thread::sleep_for(std::chrono::seconds(10));
-    // imageSource.PutFrame(drawing);
-  }
+  // int start_val = val;
+  // std::this_thread::sleep_for(std::chrono::seconds(60));
+  // double fps = ((double)val - (double)start_val)/60.0;
+  // std::cout << fps << endl;
+  // // loop forever
+  // for (;;) {
+  //   std::this_thread::sleep_for(std::chrono::seconds(10));
+  // }
 }

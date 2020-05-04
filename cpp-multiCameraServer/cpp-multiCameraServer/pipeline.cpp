@@ -21,20 +21,21 @@
 using namespace std;
 using namespace cv;
 
-class Pipeline: public frc::VisionPipeline {
+class MyPipeline: public frc::VisionPipeline {
 
 public:
 
-int val = 0;
+// static int val;
 double height = 0.0;
-double width - 0.0;
+double width = 0.0;
+// static Mat drawing;
 
 void Process(Mat& mat) {
     val++;
     
     cvtColor(mat, mat, COLOR_RGB2GRAY);
 
-    blur(mat, mat, new Size(3, 3));
+    blur(mat, mat, Size(3, 3));
 
     threshold(mat, mat, 150, 255, 0);
 
@@ -53,21 +54,20 @@ void Process(Mat& mat) {
         boundRects[i] = boundingRect(contours_poly[i]);
     }
 
+    drawing = Mat::zeros(mat.size(), CV_8UC3);
+
     for(int i = 0; i < contours.size(); i++) {
-        drawContours(mat, contours, i, Scalar(0, 0, 255), 2, 8, hierarchy, 0, Point());
+        drawContours(drawing, contours, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point());
     }
 
     if(boundRects.size() > 0) {
         int maxIndex = 0;
-        for(int i = 0; i < bounds.length; i++) {
+        for(int i = 0; i < boundRects.size(); i++) {
             maxIndex = (boundRects[i].area() > boundRects[maxIndex].area()) ? i : maxIndex;
         }
+        rectangle(drawing, boundRects[maxIndex].tl(), boundRects[maxIndex].br(), Scalar(0, 0, 255));
         height = boundRects[maxIndex].height;
-        width = boudRects[maxIndex].width;
+        width = boundRects[maxIndex].width;
     }
 }
-
-private:
-
-
 };
