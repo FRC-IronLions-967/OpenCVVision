@@ -28,6 +28,8 @@ import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.*;
 // import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.first.vision.VisionThread;
+import tablesproject.client.TableClient;
+import tablesproject.table.*;
 
 // import org.opencv.core.Mat;
 
@@ -333,11 +335,30 @@ public final class Main {
     inst.startClientTeam(team);
     visionTable = inst.getTable("vision");
 
+    try {
+      TableClient client = new TableClient("need roborio ip", 967);
+      Table table = new Table("visiontable");
+      TableEntry txEntry = new TableEntry("tx");
+      TableEntry tyEntry = new TableEntry("ty");
+      TableEntry valEntry = new TableEntry("val");
+
+      txEntry.setDoubleValue(0.0);
+      tyEntry.setDoubleValue(0.0);
+      valEntry.setIntValue(0);
+
+      table.addEntry(txEntry);
+      table.addEntry(tyEntry);
+      table.addEntry(valEntry);
+      client.addTable(table);
+
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new MyPipeline(), pipeline -> {
         // do something with pipeline results
+        txEntry.setDoubleValue(MyPipeline.tx);
+        tyEntry.setDoubleValue(MyPipeline.ty);
+        valEntry.setIntValue(MyPipeline.val);
       });
       /* something like this for GRIP:
       VisionThread visionThread = new VisionThread(cameras.get(0),
@@ -369,5 +390,8 @@ public final class Main {
         imageSource.putFrame(MyPipeline.drawing);
       }
     }
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
   }
 }

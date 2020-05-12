@@ -63,7 +63,7 @@ set CMD_LINE_ARGS=%*
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\java-multiCameraServer.jar;%APP_HOME%\lib\gson-2.8.5.jar;%APP_HOME%\lib\wpiutil.jar;%APP_HOME%\lib\ntcore.jar;%APP_HOME%\lib\cscore.jar;%APP_HOME%\lib\cameraserver.jar;%APP_HOME%\lib\opencv-347.jar;%APP_HOME%\lib\wpilibj.jar;%APP_HOME%\lib\wpiHal.jar
+set CLASSPATH=%APP_HOME%\lib\java-multiCameraServer.jar;%APP_HOME%\lib\TablesProject.jar;%APP_HOME%\lib\gson-2.8.5.jar;%APP_HOME%\lib\wpiutil.jar;%APP_HOME%\lib\ntcore.jar;%APP_HOME%\lib\cscore.jar;%APP_HOME%\lib\cameraserver.jar;%APP_HOME%\lib\opencv-347.jar;%APP_HOME%\lib\wpilibj.jar;%APP_HOME%\lib\wpiHal.jar
 
 @rem Execute java-multiCameraServer
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %JAVA_MULTI_CAMERA_SERVER_OPTS%  -classpath "%CLASSPATH%" Main %CMD_LINE_ARGS%
