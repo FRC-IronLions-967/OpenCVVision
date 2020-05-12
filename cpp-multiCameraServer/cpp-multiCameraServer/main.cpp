@@ -10,6 +10,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <mutex>
 
 #include <networktables/NetworkTableInstance.h>
 #include <vision/VisionPipeline.h>
@@ -82,6 +83,8 @@ unsigned int team;
 bool server = false;
 
 Mat drawing;
+double tx;
+double ty;
 double height = 0.0;
 double width = 0.0;
 int val;
@@ -324,9 +327,11 @@ void Process(Mat& mat) {
 
     drawing = Mat::zeros(mat.size(), CV_8UC3);
 
-    for(int i = 0; i < contours.size(); i++) {
-        drawContours(drawing, contours, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point());
-    }
+    // for(int i = 0; i < contours.size(); i++) {
+        // drawContours(drawing, contours, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point());
+    // }
+
+    Rect2d bRect;
 
     if(boundRects.size() > 0) {
         int maxIndex = 0;
@@ -334,10 +339,80 @@ void Process(Mat& mat) {
             maxIndex = (boundRects[i].area() > boundRects[maxIndex].area()) ? i : maxIndex;
         }
         rectangle(drawing, boundRects[maxIndex].tl(), boundRects[maxIndex].br(), Scalar(0, 0, 255));
-        height = boundRects[maxIndex].height;
-        width = boundRects[maxIndex].width;
+        bRect = boundRects[maxIndex];
+        height = bRect.height;
+        width = bRect.width;
+    }
+
+    if (bRect.width != 0 && bRect.height != 0) {
+          tx = ((double)bRect.tl().x - (((double)mat.cols / 2.0) - (double)bRect.width / 2.0));
+          ty = ((((double)mat.rows / 2.0) - (double)bRect.height / 2.0) - (double)bRect.tl().y);
+          //cout << tx << ", " << ty << endl;
     }
 }
+};
+
+class LemonPipeline: public frc::VisionPipeline {
+  public:
+    void Process(Mat& mat) {
+      Mat proc;
+
+      cvtColor(mat, proc, COLOR_BGR2HSV);
+
+      //inRange(proc, Scalar(0, 127, 127), Scalar(15, 255, 255), proc); //tracks red
+      inRange(proc, Scalar(22, 95, 0), Scalar(30, 255, 255), proc);
+
+      //blur(proc, proc, Size(4, 4));
+
+      //threshold(proc, proc, 150, 255, 0);
+
+      erode(proc, proc, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+      dilate(proc, proc, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+
+      dilate(proc, proc, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+      erode(proc, proc, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
+
+      Canny(proc, proc, 100, 200, 3, false);
+
+      vector<vector<Point>> contours;
+      vector<Vec4i> hierarchy;
+
+      findContours(proc, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+
+      vector<vector<Point>> contours_poly(contours.size());
+      vector<Rect> boundRects(contours.size());
+
+      for (int i = 0; i < contours.size(); i++) {
+          approxPolyDP(contours[i], contours_poly[i], 3, true);
+          boundRects[i] = boundingRect(contours_poly[i]);
+      }
+
+      cvtColor(proc, proc, COLOR_GRAY2BGR);
+
+      //for (int i = 0; i < contours.size(); i++) {
+      //    drawContours(*dest, contours, i, Scalar(255, 0, 0), 2, 8, hierarchy, 0, Point());
+      //}
+      Rect2d bRect;
+
+      if (boundRects.size() > 0) {
+          int maxIndex = 0;
+          for (int i = 0; i < boundRects.size(); i++) {
+              maxIndex = (boundRects[i].area() > boundRects[maxIndex].area()) ? i : maxIndex;
+          }
+          rectangle(proc, boundRects[maxIndex].tl(), boundRects[maxIndex].br(), Scalar(0, 0, 255));
+          bRect = boundRects[maxIndex];
+      }
+
+      //double tx, ty; //pixels offset from center of image
+
+      if (bRect.width != 0 && bRect.height != 0) {
+          tx = ((double)bRect.tl().x - (((double)proc.cols / 2.0) - (double)bRect.width / 2.0));
+          ty = ((((double)proc.rows / 2.0) - (double)bRect.height / 2.0) - (double)bRect.tl().y);
+          //cout << tx << ", " << ty << endl;
+      }
+
+    
+    }
 };
 
 int main(int argc, char* argv[]) {
