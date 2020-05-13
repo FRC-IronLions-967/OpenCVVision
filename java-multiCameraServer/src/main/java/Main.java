@@ -336,24 +336,36 @@ public final class Main {
     visionTable = inst.getTable("vision");
 
     try {
-      TableClient client = new TableClient("need roborio ip", 967);
+      TableClient client = new TableClient("need roborio ip", 967, true);
       Table table = new Table("visiontable");
       TableEntry txEntry = new TableEntry("tx");
       TableEntry tyEntry = new TableEntry("ty");
+      TableEntry widthEntry = new TableEntry("width");
+      TableEntry heightEntry = new TableEntry("height");
       TableEntry valEntry = new TableEntry("val");
+      TableEntry commandEntry = new TableEntry("com");
+      TableEntry cameraEntry = new TableEntry("camera");
 
       txEntry.setDoubleValue(0.0);
       tyEntry.setDoubleValue(0.0);
+      widthEntry.setDoubleValue(0.0);
+      heightEntry.setDoubleValue(0.0);
       valEntry.setIntValue(0);
+      commandEntry.setIntValue(0);
+      cameraEntry.setIntValue(0);
 
       table.addEntry(txEntry);
       table.addEntry(tyEntry);
+      table.addEntry(widthEntry);
+      table.addEntry(heightEntry);
       table.addEntry(valEntry);
+      table.addEntry(commandEntry);
+      table.addEntry(cameraEntry);
       client.addTable(table);
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
-      VisionThread visionThread = new VisionThread(cameras.get(0),
+      VisionThread visionThread = new VisionThread(cameras.get((cameraEntry.getIntValue() < cameras.size()) ? cameraEntry.getIntValue() : 0),
               new MyPipeline(), pipeline -> {
         // do something with pipeline results
         txEntry.setDoubleValue(MyPipeline.tx);
@@ -366,28 +378,52 @@ public final class Main {
         ...
       });
        */
-      visionThread.start();
+      // visionThread.start();
       
       CvSource imageSource = new CvSource("CV Image Source", VideoMode.PixelFormat.kMJPEG, 640, 480, 30);
       MjpegServer cvStream = new MjpegServer("CV Image Stream", 1186);
       cvStream.setSource(imageSource);
-      
-      try {
-        Thread.sleep(10000);
-        System.out.println((double) MyPipeline.val / 10);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
 
       // loop forever
       long oldTime = System.currentTimeMillis();
+      int curPipeline = 0; // 0 is MyPipeline, 1 is LemonPipeline
       for (;;) {
+        client.readMap();
+        int command = commandEntry.getIntValue();
+        switch (command) {
+          case 0:
+            break;
+            
+          case 1:
+            commandEntry.setIntValue(0);
+            visionThread = new VisionThread(cameras.get((cameraEntry.getIntValue() < cameras.size()) ? cameraEntry.getIntValue() : 0), new MyPipeline(), pipeline -> {
+              txEntry.setDoubleValue(MyPipeline.tx);
+              tyEntry.setDoubleValue(MyPipeline.ty);
+              valEntry.setIntValue(MyPipeline.val);
+            });
+            curPipeline = 0;
+            break;
+
+          case 2:
+          commandEntry.setIntValue(0);
+            visionThread = new VisionThread(cameras.get((cameraEntry.getIntValue() < cameras.size()) ? cameraEntry.getIntValue() : 0), new LemonPipeline(), pipeline -> {
+              txEntry.setDoubleValue(LemonPipeline.tx);
+              tyEntry.setDoubleValue(LemonPipeline.ty);
+              valEntry.setIntValue(LemonPipeline.val);
+            });
+            curPipeline = 1;
+            break;
+
+            default:
+              break;
+        }
         if(System.currentTimeMillis() - oldTime >= 1000) {
           System.out.println(MyPipeline.val);
           oldTime = System.currentTimeMillis();
           MyPipeline.val = 0;
         }
-        imageSource.putFrame(MyPipeline.drawing);
+        visionThread.run();
+        imageSource.putFrame((curPipeline == 0) ? MyPipeline.drawing : LemonPipeline.drawing);
       }
     }
   } catch (Exception e) {
