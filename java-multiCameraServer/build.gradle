@@ -18,6 +18,8 @@ repositories {
 dependencies {
     compile 'com.google.code.gson:gson:2.8.5'
 
+    implementation files('TablesProject.jar')
+
     compile name: 'wpiutil'
     compile name: 'ntcore'
     compile name: 'cscore'

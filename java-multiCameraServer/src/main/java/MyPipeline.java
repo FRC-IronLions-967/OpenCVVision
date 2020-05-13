@@ -6,10 +6,12 @@ import org.opencv.core.*;
 import org.opencv.imgproc.*;
 
 public class MyPipeline implements VisionPipeline {
-  public static Mat drawing;
-  public static int val;
-  public static double tx;
-  public static double ty;
+  public static volatile Mat drawing;
+  public static volatile int val;
+  public static volatile double tx;
+  public static volatile double ty;
+  public static volatile double width;
+  public static volatile double height;
 
   @Override
   public void process(Mat mat) {
@@ -60,6 +62,8 @@ public class MyPipeline implements VisionPipeline {
   if (bRect.width != 0 && bRect.height != 0) {
       tx = ((double)bRect.tl().x - (((double)proc.cols() / 2.0) - (double)bRect.width / 2.0));
       ty = ((((double)proc.rows() / 2.0) - (double)bRect.height / 2.0) - (double)bRect.tl().y);
+      width = (double) bRect.width;
+      height = (double) bRect.height;
       //cout << tx << ", " << ty << endl;
   }
 }
